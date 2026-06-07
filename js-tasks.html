@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JS Задачи 1–8</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:     #0d0f14;
+    --panel:  #13161e;
+    --border: #1e2330;
+    --accent: #00e5a0;
+    --accent2: #ff5f7e;
+    --accent3: #ffcc00;
+    --text:   #c8d0e0;
+    --muted:  #4a5168;
+    --white:  #e8edf5;
+    --mono: 'JetBrains Mono', monospace;
+    --head: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  .site-header {
+    padding: 48px 64px 36px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 20px;
+  }
+  .site-header h1 {
+    font-family: var(--head);
+    font-size: 2rem; font-weight: 800;
+    color: var(--white);
+    letter-spacing: -.5px;
+  }
+  .site-header span {
+    font-size: .8rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  .tasks {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .task {
+    background: var(--panel);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: background .2s;
+  }
+  .task:hover { background: #161924; }
+
+  .task-num {
+    font-family: var(--head);
+    font-size: 4rem; font-weight: 800;
+    color: var(--border);
+    position: absolute; top: 16px; right: 24px;
+    line-height: 1; user-select: none;
+    transition: color .2s;
+  }
+  .task:hover .task-num { color: #1e2640; }
+
+  .task-title {
+    font-family: var(--head);
+    font-size: .95rem; font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+    line-height: 1.3;
+    max-width: calc(100% - 60px);
+  }
+
+  .task-desc {
+    font-size: .75rem; color: var(--muted);
+    margin-bottom: 20px; line-height: 1.6;
+    max-width: calc(100% - 60px);
+  }
+
+  .field-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  input[type="text"], input[type="number"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: .8rem;
+    padding: 8px 12px;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    transition: border-color .2s;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  label {
+    font-size: .72rem; color: var(--muted);
+    display: block; margin-bottom: 4px; letter-spacing: .5px;
+  }
+
+  .field-group { flex: 1; min-width: 80px; }
+
+  button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: .78rem;
+    padding: 9px 20px;
+    cursor: pointer;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    transition: background .2s, transform .1s;
+    white-space: nowrap;
+    align-self: flex-end;
+  }
+  button:hover  { background: #00ffc3; }
+  button:active { transform: scale(.97); }
+
+  .console {
+    margin-top: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    min-height: 48px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: .75rem;
+    line-height: 1.7;
+    color: var(--accent);
+    display: none;
+  }
+  .console.visible { display: block; }
+  .console .line-out  { color: var(--accent); }
+  .console .line-err  { color: var(--accent2); }
+  .console .line-info { color: var(--accent3); }
+
+  .console::-webkit-scrollbar { width: 4px; }
+  .console::-webkit-scrollbar-track { background: transparent; }
+  .console::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .task::before {
+    content: '';
+    position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+  }
+  .task:nth-child(1)::before { background: var(--accent); }
+  .task:nth-child(2)::before { background: var(--accent2); }
+  .task:nth-child(3)::before { background: var(--accent3); }
+  .task:nth-child(4)::before { background: #a78bff; }
+  .task:nth-child(5)::before { background: #38bdf8; }
+  .task:nth-child(6)::before { background: #fb923c; }
+  .task:nth-child(7)::before { background: #f472b6; }
+  .task:nth-child(8)::before { background: #4ade80; }
+
+  .tbl { border-collapse: collapse; width: 100%; font-size: .72rem; }
+  .tbl td, .tbl th {
+    border: 1px solid var(--border);
+    padding: 3px 8px; text-align: right;
+    white-space: nowrap;
+  }
+  .tbl th { color: var(--accent3); background: #0d0f14; text-align: center; }
+  .tbl td:first-child { text-align: center; color: var(--muted); }
+
+  .matrix-wrap { overflow-x: auto; }
+  .mat { border-collapse: collapse; }
+  .mat td {
+    width: 26px; height: 26px;
+    text-align: center; vertical-align: middle;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: .75rem;
+  }
+  .mat td.diag { color: #fff; background: rgba(0,229,160,.15); font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .tasks { grid-template-columns: 1fr; }
+    .site-header { padding: 32px 24px 24px; }
+    .task { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>JS Задачи</h1>
+  <span>1 – 8 &nbsp;/&nbsp; vanilla js</span>
+</header>
+
+<div class="tasks">
+
+  <!-- ═══ ЗАДАЧА 1 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">01</div>
+    <div class="task-title">Арифметика трёх чисел</div>
+    <div class="task-desc">Удвоить 1-е, уменьшить 2-е на 3, возвести 3-е в квадрат, затем найти сумму всех трёх.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Число A</label><input type="number" id="t1a" placeholder="напр. 4"/></div>
+      <div class="field-group"><label>Число B</label><input type="number" id="t1b" placeholder="напр. 7"/></div>
+      <div class="field-group"><label>Число C</label><input type="number" id="t1c" placeholder="напр. 3"/></div>
+      <button onclick="task1()">Запуск</button>
+    </div>
+    <div class="console" id="out1"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 2 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">02</div>
+    <div class="task-title">Условное преобразование числа</div>
+    <div class="task-desc">[2–5] → +10 &nbsp;|&nbsp; [7–40] → −100 &nbsp;|&nbsp; ≤0 или >3000 → ×3 &nbsp;|&nbsp; иначе → 0</div>
+    <div class="field-row">
+      <div class="field-group"><label>Число</label><input type="number" id="t2n" placeholder="напр. 15"/></div>
+      <button onclick="task2()">Запуск</button>
+    </div>
+    <div class="console" id="out2"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 3 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">03</div>
+    <div class="task-title">Доллары → Рубли → Конфеты</div>
+    <div class="task-desc">Таблица из 100 строк: $1–$100 → рубли → кг конфет (1 кг = 20 руб.).</div>
+    <div class="field-row">
+      <div class="field-group"><label>Курс доллара (руб. за $1)</label><input type="number" id="t3rate" placeholder="напр. 90"/></div>
+      <button onclick="task3()">Запуск</button>
+    </div>
+    <div class="console" id="out3"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 4 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">04</div>
+    <div class="task-title">Шифрование цифр</div>
+    <div class="task-desc">Каждая цифра D кодируется буквой (A+D), повторённой (D+1) раз. Например: 0→A, 1→BB, 2→CCC.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Положительное целое число</label><input type="text" id="t4n" placeholder="напр. 38290"/></div>
+      <button onclick="task4()">Запуск</button>
+    </div>
+    <div class="console" id="out4"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 5 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">05</div>
+    <div class="task-title">Массив из N простых чисел</div>
+    <div class="task-desc">Заполнить массив первыми N различными простыми числами.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Длина массива N</label><input type="number" id="t5n" placeholder="напр. 10" min="1"/></div>
+      <button onclick="task5()">Запуск</button>
+    </div>
+    <div class="console" id="out5"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 6 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">06</div>
+    <div class="task-title">Максимум кратный 3 на нечётных индексах</div>
+    <div class="task-desc">Введите числа через пробел. Среди элементов с нечётными индексами (1,3,5…) найти максимум, кратный 3.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Массив (через пробел)</label><input type="text" id="t6arr" placeholder="напр. 9 4 12 6 3 15 2"/></div>
+      <button onclick="task6()">Запуск</button>
+    </div>
+    <div class="console" id="out6"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 7 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">07</div>
+    <div class="task-title">Матрица с единицами на побочной диагонали</div>
+    <div class="task-desc">Матрица N×N из случайных чисел [0–9], на побочной диагонали — единицы.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Размер матрицы N</label><input type="number" id="t7n" placeholder="напр. 5" min="2" max="12"/></div>
+      <button onclick="task7()">Запуск</button>
+    </div>
+    <div class="console" id="out7"></div>
+  </div>
+
+  <!-- ═══ ЗАДАЧА 8 ══════════════════════════════════════════ -->
+  <div class="task">
+    <div class="task-num">08</div>
+    <div class="task-title">Триграммы: замена и сортировка</div>
+    <div class="task-desc">Разбить строку на фрагменты по 3 символа. Заменить средний символ случайным, не совпадающим ни с одним в фрагменте. Отсортировать по алфавиту.</div>
+    <div class="field-row">
+      <div class="field-group"><label>Строка</label><input type="text" id="t8s" placeholder="напр. Привет мир"/></div>
+      <button onclick="task8()">Запуск</button>
+    </div>
+    <div class="console" id="out8"></div>
+  </div>
+
+</div>
+
+<script>
+/* ── Вспомогательные функции ──────────────────── */
+function out(id, lines, type = 'out') {
+  const el = document.getElementById(id);
+  el.innerHTML = lines.map(l =>
+    `<div class="line-${l.t || type}">${l.text ?? l}</div>`
+  ).join('');
+  el.classList.add('visible');
+  console.log(`[Задача ${id.replace('out','')}]`, ...lines.map(l => l.text ?? l));
+}
+
+function err(id, msg) {
+  out(id, [{ text: '✖ ' + msg, t: 'err' }]);
+  console.error(msg);
+}
+
+function getNum(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+function getInt(id) {
+  const v = parseInt(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+function getStr(id) {
+  return document.getElementById(id).value.trim();
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 1 – Удвоить / −3 / квадрат / сумма
+══════════════════════════════════════════════════ */
+function task1() {
+  const a = getNum('t1a'), b = getNum('t1b'), c = getNum('t1c');
+  if (a === null || b === null || c === null)
+    return err('out1', 'Введите все три числа.');
+
+  const a2 = a * 2;
+  const b2 = b - 3;
+  const c2 = c ** 2;
+  const sum = a2 + b2 + c2;
+
+  out('out1', [
+    { text: `a = ${a}  →  a×2 = ${a2}`, t: 'info' },
+    { text: `b = ${b}  →  b−3 = ${b2}`, t: 'info' },
+    { text: `c = ${c}  →  c²  = ${c2}`, t: 'info' },
+    { text: `Сумма = ${a2} + ${b2} + ${c2} = ${sum}`, t: 'out' },
+  ]);
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 2 – Условное преобразование
+══════════════════════════════════════════════════ */
+function task2() {
+  const raw = getNum('t2n');
+  if (raw === null) return err('out2', 'Введите число.');
+
+  let n = raw;
+  let rule = '';
+
+  if (n >= 2 && n <= 5)        { n += 10;   rule = `[2..5] → +10`; }
+  else if (n >= 7 && n <= 40)  { n -= 100;  rule = `[7..40] → −100`; }
+  else if (n <= 0 || n > 3000) { n *= 3;    rule = `≤0 или >3000 → ×3`; }
+  else                          { n = 0;     rule = `иначе → 0`; }
+
+  out('out2', [
+    { text: `Введено:    ${raw}`, t: 'info' },
+    { text: `Правило:    ${rule}`, t: 'info' },
+    { text: `Результат: ${n}`, t: 'out' },
+  ]);
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 3 – Доллары / Рубли / Конфеты
+══════════════════════════════════════════════════ */
+function task3() {
+  const rate = getNum('t3rate');
+  if (!rate || rate <= 0) return err('out3', 'Введите корректный курс > 0.');
+
+  let html = `<div class="matrix-wrap"><table class="tbl">
+    <tr><th>$</th><th>Рубли</th><th>Конфеты (кг)</th></tr>`;
+
+  for (let d = 1; d <= 100; d++) {
+    const rub   = +(d * rate).toFixed(2);
+    const candy = +(rub / 20).toFixed(2);
+    html += `<tr><td>${d}</td><td>${rub} ₽</td><td>${candy} кг</td></tr>`;
+    console.log(`${d}$ — ${rub} руб. — ${candy} кг`);
+  }
+  html += '</table></div>';
+
+  const el = document.getElementById('out3');
+  el.innerHTML = html;
+  el.classList.add('visible');
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 4 – Шифрование цифр
+   Принцип: цифра D → буква (A+D), повторённая (D+1) раз.
+   0 → A   1 → BB   2 → CCC  ...  9 → JJJJJJJJJJ
+══════════════════════════════════════════════════ */
+function task4() {
+  const raw = getStr('t4n');
+  if (!/^\d+$/.test(raw))
+    return err('out4', 'Введите положительное целое число (только цифры).');
+
+  const lines = [{ text: `Введено: ${raw}`, t: 'info' }];
+  let encoded = '';
+
+  for (const ch of raw) {
+    const d     = parseInt(ch);
+    const count = d + 1;
+    const base  = String.fromCharCode(65 + d); // 0→A, 1→B, …
+    const frag  = base.repeat(count);
+    lines.push({ text: `  ${ch} → ${frag}`, t: 'info' });
+    encoded += frag + '-';
+  }
+
+  lines.push({ text: `Зашифровано: ${encoded.slice(0, -1)}`, t: 'out' });
+  out('out4', lines);
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 5 – Массив из N простых чисел
+══════════════════════════════════════════════════ */
+function isPrime(n) {
+  if (n < 2) return false;
+  for (let i = 2; i <= Math.sqrt(n); i++) if (n % i === 0) return false;
+  return true;
+}
+
+function task5() {
+  const n = getInt('t5n');
+  if (!n || n < 1) return err('out5', 'Введите положительное целое число N.');
+  if (n > 500)     return err('out5', 'N слишком большое (максимум 500).');
+
+  const primes = [];
+  let candidate = 2;
+  while (primes.length < n) {
+    if (isPrime(candidate)) primes.push(candidate);
+    candidate++;
+  }
+
+  console.log('Простые числа:', primes);
+  out('out5', [
+    { text: `Первые ${n} простых чисел:`, t: 'info' },
+    { text: `[ ${primes.join(', ')} ]`, t: 'out' },
+  ]);
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 6 – Максимум кратный 3 на нечётных индексах
+══════════════════════════════════════════════════ */
+function task6() {
+  const raw = getStr('t6arr');
+  if (!raw) return err('out6', 'Введите числа через пробел.');
+
+  const arr = raw.split(/\s+/).map(Number);
+  if (arr.some(isNaN)) return err('out6', 'Все значения должны быть числами.');
+
+  const lines = [{ text: `Массив: [ ${arr.join(', ')} ]`, t: 'info' }];
+
+  // нечётные индексы: 1, 3, 5, …
+  const candidates = [];
+  for (let i = 1; i < arr.length; i += 2) {
+    if (arr[i] % 3 === 0) candidates.push({ idx: i, val: arr[i] });
+  }
+
+  console.log('Элементы на нечётных индексах, кратные 3:', candidates);
+
+  if (candidates.length === 0) {
+    lines.push({ text: 'Нет элементов на нечётных индексах, кратных 3.', t: 'err' });
+  } else {
+    lines.push({ text: `Кандидаты: ${candidates.map(c => `[${c.idx}]=${c.val}`).join(', ')}`, t: 'info' });
+    const max = Math.max(...candidates.map(c => c.val));
+    lines.push({ text: `Максимум = ${max}`, t: 'out' });
+  }
+  out('out6', lines);
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 7 – Матрица N×N, побочная диагональ = 1
+══════════════════════════════════════════════════ */
+function task7() {
+  const n = getInt('t7n');
+  if (!n || n < 2 || n > 12) return err('out7', 'Введите N от 2 до 12.');
+
+  const m = [];
+  for (let i = 0; i < n; i++) {
+    m[i] = [];
+    for (let j = 0; j < n; j++) {
+      // побочная диагональ: i + j === n - 1
+      m[i][j] = (i + j === n - 1) ? 1 : Math.floor(Math.random() * 10);
+    }
+  }
+
+  console.log('Матрица:');
+  m.forEach(row => console.log(row.join('\t')));
+
+  let html = '<div class="matrix-wrap"><table class="mat">';
+  for (let i = 0; i < n; i++) {
+    html += '<tr>';
+    for (let j = 0; j < n; j++) {
+      const diag = (i + j === n - 1) ? ' diag' : '';
+      html += `<td class="${diag}">${m[i][j]}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table></div>';
+
+  const el = document.getElementById('out7');
+  el.innerHTML = html;
+  el.classList.add('visible');
+}
+
+/* ══════════════════════════════════════════════════
+   ЗАДАЧА 8 – Триграммы: замена среднего, сортировка
+══════════════════════════════════════════════════ */
+function task8() {
+  const s = getStr('t8s');
+  if (s.length < 3) return err('out8', 'Строка должна содержать не менее 3 символов.');
+
+  const frags = [];
+  for (let i = 0; i + 2 < s.length; i += 3) {
+    frags.push(s.slice(i, i + 3));
+  }
+
+  const lines = [
+    { text: `Введено:    "${s}"`, t: 'info' },
+    { text: `Фрагменты: [ ${frags.map(f => `"${f}"`).join(', ')} ]`, t: 'info' },
+  ];
+
+  const CHARSET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  const modified = frags.map(frag => {
+    const forbidden = new Set([frag[0], frag[1], frag[2]]);
+    const pool = CHARSET.split('').filter(c => !forbidden.has(c));
+    const rand = pool[Math.floor(Math.random() * pool.length)];
+    return frag[0] + rand + frag[2];
+  });
+
+  lines.push({ text: `Изменено:  [ ${modified.map(f => `"${f}"`).join(', ')} ]`, t: 'info' });
+
+  const sorted = [...modified].sort();
+  lines.push({ text: `Сортировка: [ ${sorted.map(f => `"${f}"`).join(', ')} ]`, t: 'out' });
+
+  console.log('Отсортированные фрагменты:', sorted);
+  out('out8', lines);
+}
+</script>
+</body>
+</html>
